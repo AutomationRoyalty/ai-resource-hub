@@ -1,0 +1,83 @@
+{
+  "name": "AI Landing Page Opt-ins to Notion",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ai-optin",
+        "options": { "allowedOrigins": "*", "responseData": "{\"ok\":true}" }
+      },
+      "name": "Opt-in Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "first-name", "name": "firstName", "value": "={{ String($json.body.firstName || \"\").trim().slice(0, 80) }}", "type": "string" },
+            { "id": "email", "name": "email", "value": "={{ String($json.body.email || \"\").trim().toLowerCase().slice(0, 200) }}", "type": "string" },
+            { "id": "page", "name": "page", "value": "={{ String($json.body.page || \"\").slice(0, 500) }}", "type": "string" },
+            { "id": "honeypot", "name": "honeypot", "value": "={{ String($json.body.company_website || \"\") }}", "type": "string" },
+            { "id": "source", "name": "source", "value": "={{ $json.body.test === true ? \"Test\" : \"Landing page\" }}", "type": "string" },
+            { "id": "opted-in", "name": "optedIn", "value": "={{ $now.toISO() }}", "type": "string" }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Clean Lead",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [224, 0]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose", "version": 1 },
+          "conditions": [
+            { "leftValue": "={{ $json.firstName }}", "operator": { "type": "string", "operation": "notEmpty", "singleValue": true } },
+            { "leftValue": "={{ $json.email }}", "operator": { "type": "string", "operation": "regex" }, "rightValue": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$" },
+            { "leftValue": "={{ $json.honeypot }}", "operator": { "type": "string", "operation": "empty", "singleValue": true } }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "Valid Lead?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [448, 0]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "create",
+        "dataSourceId": { "__rl": true, "mode": "id", "value": "PASTE_YOUR_NOTION_DATA_SOURCE_ID" },
+        "title": "={{ $json.firstName }}",
+        "propertiesUi": {
+          "propertyValues": [
+            { "key": "Email|email", "emailValue": "={{ $json.email }}" },
+            { "key": "Opted In|date", "date": "={{ $json.optedIn }}" },
+            { "key": "Source|select", "selectValue": "={{ $json.source }}" },
+            { "key": "Page URL|url", "urlValue": "={{ $json.page }}", "ignoreIfEmpty": true }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Save to Notion",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 3,
+      "position": [672, 0],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    }
+  ],
+  "connections": {
+    "Opt-in Webhook": { "main": [[{ "node": "Clean Lead", "type": "main", "index": 0 }]] },
+    "Clean Lead": { "main": [[{ "node": "Valid Lead?", "type": "main", "index": 0 }]] },
+    "Valid Lead?": { "main": [[{ "node": "Save to Notion", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" }
+}

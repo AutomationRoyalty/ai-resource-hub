@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reel Review</title>
+<style>
+@font-face { font-family: "Montserrat"; font-weight: 500; src: url("../../fonts/Montserrat-Medium.ttf"); }
+@font-face { font-family: "Montserrat"; font-weight: 600; src: url("../../fonts/Montserrat-SemiBold.ttf"); }
+@font-face { font-family: "Montserrat"; font-weight: 700; src: url("../../fonts/Montserrat-Bold.ttf"); }
+@font-face { font-family: "Montserrat"; font-weight: 800; src: url("../../fonts/Montserrat-ExtraBold.ttf"); }
+:root {
+  --bg: #0a0a0a; --panel: #131313; --panel-2: #1a1a1a; --line: #262626; --line-2: #333;
+  --text: #f4f4f4; --muted: #8f8f8f; --dim: #5e5e5e;
+  --ok: #3ddc84; --ok-bg: rgba(61,220,132,.12);
+  --warn: #ffb547; --warn-bg: rgba(255,181,71,.12);
+  --bad: #ff5d5d; --bad-bg: rgba(255,93,93,.12);
+  --blue: #6ea8ff; --blue-bg: rgba(110,168,255,.12);
+  --radius: 14px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--text); }
+body { font: 500 14px/1.5 "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+button, textarea, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+
+/* ---------- top bar ---------- */
+.top { position: sticky; top: 0; z-index: 20; background: rgba(10,10,10,.88); backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
+.top-in { max-width: 1240px; margin: 0 auto; padding: 16px 24px 14px; display: grid; gap: 12px;
+  grid-template-columns: 1fr auto; align-items: center; }
+.eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+h1 { margin: 2px 0 0; font-size: 20px; font-weight: 800; letter-spacing: -.01em; line-height: 1.25; }
+.actions { display: flex; gap: 8px; align-items: center; }
+.btn { border: 1px solid var(--line-2); background: var(--panel-2); border-radius: 10px; padding: 9px 14px;
+  font-weight: 600; font-size: 13px; transition: background .15s, border-color .15s, transform .05s; }
+.btn:hover { background: #222; border-color: #444; }
+.btn:active { transform: translateY(1px); }
+.btn.primary { background: #fff; color: #000; border-color: #fff; }
+.btn.primary:hover { background: #e6e6e6; }
+.btn.ghost { background: transparent; border-color: transparent; color: var(--muted); }
+.btn.ghost:hover { color: var(--text); background: var(--panel-2); }
+.progress { grid-column: 1 / -1; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.bar { flex: 1 1 220px; height: 6px; background: var(--panel-2); border-radius: 99px; overflow: hidden; display: flex; }
+.bar span { height: 100%; transition: width .3s; }
+.counts { display: flex; gap: 14px; font-size: 12px; color: var(--muted); font-weight: 600; flex-wrap: wrap; }
+.counts b { color: var(--text); font-weight: 700; }
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; background: var(--dim); }
+.dot.ok { background: var(--ok); } .dot.warn { background: var(--warn); } .dot.bad { background: var(--bad); } .dot.up { background: var(--blue); }
+.filters { grid-column: 1 / -1; display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { border: 1px solid var(--line); background: transparent; border-radius: 99px; padding: 5px 12px;
+  font-size: 12px; font-weight: 600; color: var(--muted); }
+.chip:hover { color: var(--text); border-color: var(--line-2); }
+.chip.on { background: var(--text); color: #000; border-color: var(--text); }
+
+/* ---------- reels ---------- */
+main { max-width: 1240px; margin: 0 auto; padding: 24px 24px 120px; display: grid; gap: 20px; }
+.how { color: var(--muted); font-size: 13px; background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 14px 18px; }
+.how b { color: var(--text); font-weight: 600; }
+.reel { display: grid; grid-template-columns: minmax(260px, 340px) 1fr; gap: 24px; background: var(--panel);
+  border: 1px solid var(--line); border-radius: 18px; padding: 20px; scroll-margin-top: 150px;
+  transition: border-color .2s; }
+.reel[data-v="approve"] { border-color: rgba(61,220,132,.45); }
+.reel[data-v="changes"] { border-color: rgba(255,181,71,.45); }
+.reel[data-v="reject"] { border-color: rgba(255,93,93,.4); }
+.reel[data-v="reject"] .player video { opacity: .55; }
+.player { position: relative; }
+.player video { width: 100%; aspect-ratio: 9 / 16; display: block; background: #000; border-radius: 12px;
+  border: 1px solid var(--line); max-height: 76vh; object-fit: contain; }
+.vid-err { aspect-ratio: 9 / 16; display: grid; place-items: center; text-align: center; padding: 24px;
+  border: 1px dashed var(--line-2); border-radius: 12px; color: var(--muted); font-size: 13px; }
+.vid-err[hidden] { display: none; }
+.speed { display: flex; gap: 4px; margin-top: 8px; justify-content: center; }
+.speed button { border: 1px solid var(--line); background: transparent; border-radius: 8px; padding: 3px 9px;
+  font-size: 11px; font-weight: 700; color: var(--muted); }
+.speed button.on { color: var(--text); border-color: var(--line-2); background: var(--panel-2); }
+.side { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.head { display: flex; gap: 12px; align-items: flex-start; }
+.num { flex: none; width: 34px; height: 34px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--line);
+  display: grid; place-items: center; font-weight: 800; font-size: 14px; }
+.htxt h2 { margin: 0; font-size: 19px; font-weight: 800; line-height: 1.3; letter-spacing: -.01em; }
+.meta { margin-top: 4px; font-size: 12px; color: var(--muted); display: flex; gap: 12px; flex-wrap: wrap; }
+.badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: var(--blue-bg); color: var(--blue); }
+.label { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.seg.two { grid-template-columns: repeat(2, 1fr); }
+.opt { border: 1px solid var(--line-2); background: var(--panel-2); border-radius: 11px; padding: 11px 10px;
+  font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: all .15s; }
+.opt:hover { border-color: #4a4a4a; }
+.opt svg { width: 16px; height: 16px; flex: none; }
+.opt.on.ok { background: var(--ok-bg); border-color: var(--ok); color: var(--ok); }
+.opt.on.warn { background: var(--warn-bg); border-color: var(--warn); color: var(--warn); }
+.opt.on.bad { background: var(--bad-bg); border-color: var(--bad); color: var(--bad); }
+.opt.on.up { background: var(--blue-bg); border-color: var(--blue); color: var(--blue); }
+.opt.on.neutral { background: #222; border-color: #555; color: var(--text); }
+.opt:disabled { opacity: .35; cursor: not-allowed; }
+.hint { font-size: 12px; color: var(--dim); margin-top: 6px; }
+.notes-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.notes-row .label { margin: 0; }
+.stamp { border: 1px solid var(--line-2); background: transparent; border-radius: 8px; padding: 4px 10px;
+  font-size: 12px; font-weight: 600; color: var(--text); }
+.stamp:hover { background: var(--panel-2); }
+textarea, input[type=text] { width: 100%; background: #0d0d0d; border: 1px solid var(--line-2); border-radius: 11px;
+  padding: 11px 13px; line-height: 1.5; outline: none; transition: border-color .15s; }
+textarea { min-height: 96px; resize: vertical; }
+textarea:focus, input[type=text]:focus { border-color: #777; }
+textarea::placeholder, input::placeholder { color: var(--dim); }
+.prev { font-size: 12px; color: var(--muted); background: var(--panel-2); border: 1px dashed var(--line-2);
+  border-radius: 10px; padding: 10px 12px; white-space: pre-wrap; }
+.prev b { color: var(--text); }
+details { border-top: 1px solid var(--line); padding-top: 12px; }
+summary { cursor: pointer; font-size: 12px; font-weight: 700; color: var(--muted); list-style: none; }
+summary::-webkit-details-marker { display: none; }
+summary::before { content: "+ "; }
+details[open] summary::before { content: "- "; }
+.transcript { margin-top: 10px; font-size: 13px; color: #bdbdbd; line-height: 1.65; }
+.saved { font-size: 11px; color: var(--dim); text-align: right; min-height: 16px; }
+
+/* ---------- export modal ---------- */
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,.7); display: none; place-items: center; z-index: 50; padding: 16px; }
+.modal.open { display: grid; }
+.sheet { width: min(720px, 100%); max-height: 88vh; display: flex; flex-direction: column; gap: 12px; background: var(--panel);
+  border: 1px solid var(--line-2); border-radius: 18px; padding: 20px; }
+.sheet h3 { margin: 0; font-size: 17px; font-weight: 800; }
+.sheet p { margin: 0; color: var(--muted); font-size: 13px; }
+.sheet textarea { flex: 1; min-height: 320px; font: 500 12.5px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; }
+.sheet .actions { justify-content: flex-end; }
+.toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%) translateY(20px); opacity: 0;
+  background: #fff; color: #000; font-weight: 700; font-size: 13px; padding: 10px 18px; border-radius: 99px;
+  transition: all .25s; pointer-events: none; z-index: 60; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.empty { text-align: center; color: var(--muted); padding: 40px; }
+
+@media (max-width: 760px) {
+  .top-in { grid-template-columns: 1fr; padding: 12px 16px; }
+  main { padding: 16px 16px 100px; }
+  .reel { grid-template-columns: 1fr; padding: 14px; }
+  .player { max-width: 340px; margin: 0 auto; width: 100%; }
+}
+</style>
+</head>
+<body>
+<header class="top"><div class="top-in">
+  <div>
+    <div class="eyebrow">Reel review</div>
+    <h1 id="title">__TITLE__</h1>
+  </div>
+  <div class="actions">
+    <button class="btn ghost" id="resetBtn" title="Clear every verdict and note on this page">Reset</button>
+    <button class="btn primary" id="exportBtn">Copy feedback</button>
+  </div>
+  <div class="progress">
+    <div class="bar" id="bar"></div>
+    <div class="counts" id="counts"></div>
+  </div>
+  <div class="filters" id="filters"></div>
+</div></header>
+
+<main id="list">
+  <div class="how">
+    Watch each reel, pick <b>Approve</b>, <b>Needs changes</b> or <b>Reject</b>, and say whether it's
+    <b>OK to upload</b>. Use <b>+ Note at time</b> to stamp the moment you're talking about. Everything saves
+    automatically in this browser. When you're done, hit <b>Copy feedback</b> and paste it into Claude.
+  </div>
+</main>
+
+<div class="modal" id="modal"><div class="sheet">
+  <h3>Your feedback</h3>
+  <p>Already copied. If it didn't copy, select all in the box below and copy it, then paste it into Claude.</p>
+  <textarea id="exportText" readonly></textarea>
+  <div class="actions">
+    <button class="btn" id="closeModal">Close</button>
+    <button class="btn primary" id="copyAgain">Copy again</button>
+  </div>
+</div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const DATA = /*__DATA__*/null;
+const KEY = "reel-review:" + DATA.slug;
+const VERDICTS = {
+  approve: { label: "Approve", cls: "ok", out: "APPROVED" },
+  changes: { label: "Needs changes", cls: "warn", out: "NEEDS CHANGES" },
+  reject:  { label: "Reject", cls: "bad", out: "REJECTED" },
+};
+const ICON = {
+  approve: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+  changes: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16v4z"/></svg>',
+  reject:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  upload:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M6 10l6-6 6 6M4 20h16"/></svg>',
+  hold:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6v12M15 6v12"/></svg>',
+};
+
+/* ---------- state (localStorage, guarded) ---------- */
+function load() { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } }
+let state = load();
+function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+// A re-rendered reel (new version) starts fresh; the old verdict + note are kept as "previous".
+for (const r of DATA.reels) {
+  const s = state[r.id];
+  if (s && s.ver !== r.ver) {
+    const had = s.verdict || (s.note || "").trim() || (s.headline || "").trim();
+    state[r.id] = { ver: r.ver, updated: true, prev: had ? { verdict: s.verdict, upload: s.upload, note: s.note, headline: s.headline } : s.prev };
+  } else if (!s) state[r.id] = { ver: r.ver };
+}
+save();
+
+// Cache-bust only over http(s). On file:// a "?v=" is read as part of the filename by some browsers.
+const BUST = r => location.protocol === "file:" ? "" : "?v=" + r.ver;
+const fmt = t => { t = Math.max(0, Math.floor(t)); return Math.floor(t / 60) + ":" + String(t % 60).padStart(2, "0"); };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+/* ---------- render ---------- */
+const list = document.getElementById("list");
+let filter = "all";
+
+function card(r) {
+  const s = state[r.id];
+  const el = document.createElement("section");
+  el.className = "reel"; el.id = "reel-" + r.id; el.dataset.v = s.verdict || "";
+  const prev = s.prev && (s.prev.verdict || (s.prev.note || "").trim())
+    ? `<div class="prev"><b>Your note on the last version${s.prev.verdict ? " (" + VERDICTS[s.prev.verdict].label.toLowerCase() + ")" : ""}:</b>\n${esc(s.prev.note || "(no note)")}${s.prev.headline ? "\nNew headline: " + esc(s.prev.headline) : ""}</div>` : "";
+  el.innerHTML = `
+    <div class="player">
+      <video controls playsinline preload="metadata" src="${esc(r.file)}${BUST(r)}" ${r.poster ? `poster="${esc(r.poster)}${BUST(r)}"` : ""}></video>
+      <div class="vid-err" hidden>This video couldn't load. Open <b>review.html</b> straight from Finder in Chrome or Safari (not in a preview pane), and keep it in the same folder as the reels.</div>
+      <div class="speed">${[1, 1.25, 1.5, 2].map(x => `<button data-rate="${x}" class="${x === 1 ? "on" : ""}">${x}x</button>`).join("")}</div>
+    </div>
+    <div class="side">
+      <div class="head">
+        <div class="num">${r.n}</div>
+        <div class="htxt">
+          <h2>${esc(r.headline)}</h2>
+          <div class="meta"><span>${fmt(r.duration)} long</span>${r.src ? `<span>From ${esc(r.src)} in the video</span>` : ""}<span>${esc(r.id)}</span>${s.updated ? '<span class="badge">Updated</span>' : ""}</div>
+        </div>
+      </div>
+      ${prev}
+      <div>
+        <div class="label">Verdict</div>
+        <div class="seg">${Object.entries(VERDICTS).map(([k, v]) =>
+          `<button class="opt ${v.cls} ${s.verdict === k ? "on" : ""}" data-verdict="${k}">${ICON[k]}${v.label}</button>`).join("")}</div>
+      </div>
+      <div>
+        <div class="label">OK to upload?</div>
+        <div class="seg two">
+          <button class="opt up ${s.upload === "yes" ? "on" : ""}" data-upload="yes">${ICON.upload}Yes, upload</button>
+          <button class="opt neutral ${s.upload === "no" ? "on" : ""}" data-upload="no">${ICON.hold}Not yet</button>
+        </div>
+        <div class="hint" data-hint></div>
+      </div>
+      <div>
+        <div class="notes-row">
+          <div class="label">What to fix, improve or change</div>
+          <button class="stamp" data-stamp>+ Note at 0:00</button>
+        </div>
+        <textarea data-note placeholder="e.g. [0:12] caption says 'cloud', should be 'Claude'. Make the hook punchier. End one sentence earlier.">${esc(s.note || "")}</textarea>
+      </div>
+      <div>
+        <div class="label">New headline (optional)</div>
+        <input type="text" data-headline placeholder="${esc(r.headline)}" value="${esc(s.headline || "")}">
+      </div>
+      <details><summary>Show what's said in this reel</summary><div class="transcript">${esc(r.caption)}</div></details>
+      <div class="saved" data-saved></div>
+    </div>`;
+
+  const video = el.querySelector("video"), stamp = el.querySelector("[data-stamp]");
+  const note = el.querySelector("[data-note]"), head = el.querySelector("[data-headline]");
+  const saved = el.querySelector("[data-saved]"), hint = el.querySelector("[data-hint]");
+  const flash = () => { saved.textContent = "Saved"; clearTimeout(saved._t); saved._t = setTimeout(() => saved.textContent = "", 1200); };
+  const syncHint = () => {
+    const st = state[r.id];
+    hint.textContent = st.verdict === "reject" ? "Rejected reels won't be uploaded."
+      : st.upload === "yes" && st.verdict !== "approve" ? "Heads up: marked for upload but not approved yet." : "";
+  };
+  syncHint();
+
+  video.addEventListener("error", () => { el.querySelector(".vid-err").hidden = false; video.style.display = "none"; });
+  video.addEventListener("play", () => document.querySelectorAll("video").forEach(v => v !== video && v.pause()));
+  video.addEventListener("timeupdate", () => stamp.textContent = "+ Note at " + fmt(video.currentTime));
+  el.querySelectorAll("[data-rate]").forEach(b => b.onclick = () => {
+    video.playbackRate = +b.dataset.rate;
+    el.querySelectorAll("[data-rate]").forEach(x => x.classList.toggle("on", x === b));
+  });
+  el.querySelectorAll("[data-verdict]").forEach(b => b.onclick = () => {
+    const k = b.dataset.verdict, st = state[r.id];
+    st.verdict = st.verdict === k ? undefined : k;
+    if (st.verdict === "reject") st.upload = "no";
+    if (st.verdict === "approve" && !st.upload) st.upload = "yes";
+    save(); refreshCard(el, r); refreshTop(); flash();
+    if (st.verdict === "changes" && !note.value.trim()) note.focus();
+  });
+  el.querySelectorAll("[data-upload]").forEach(b => b.onclick = () => {
+    const st = state[r.id]; const k = b.dataset.upload;
+    st.upload = st.upload === k ? undefined : k;
+    save(); refreshCard(el, r); refreshTop(); flash();
+  });
+  stamp.onclick = () => {
+    video.pause();
+    const tag = "[" + fmt(video.currentTime) + "] ";
+    const v = note.value, at = note.selectionStart ?? v.length;
+    const pre = v.slice(0, at), lead = pre && !pre.endsWith("\n") ? "\n" : "";
+    note.value = pre + lead + tag + v.slice(at);
+    const pos = (pre + lead + tag).length;
+    note.focus(); note.setSelectionRange(pos, pos);
+    state[r.id].note = note.value; save(); flash();
+  };
+  note.addEventListener("input", () => { state[r.id].note = note.value; save(); flash(); refreshTop(); });
+  head.addEventListener("input", () => { state[r.id].headline = head.value; save(); flash(); });
+  return el;
+}
+
+function refreshCard(el, r) {
+  const st = state[r.id];
+  el.dataset.v = st.verdict || "";
+  el.querySelectorAll("[data-verdict]").forEach(b => b.classList.toggle("on", b.dataset.verdict === st.verdict));
+  el.querySelectorAll("[data-upload]").forEach(b => b.classList.toggle("on", b.dataset.upload === st.upload));
+  const hint = el.querySelector("[data-hint]");
+  hint.textContent = st.verdict === "reject" ? "Rejected reels won't be uploaded."
+    : st.upload === "yes" && st.verdict !== "approve" ? "Heads up: marked for upload but not approved yet." : "";
+}
+
+function tally() {
+  const t = { approve: 0, changes: 0, reject: 0, none: 0, upload: 0 };
+  for (const r of DATA.reels) { const s = state[r.id]; t[s.verdict || "none"]++; if (s.upload === "yes" && s.verdict !== "reject") t.upload++; }
+  return t;
+}
+function refreshTop() {
+  const t = tally(), n = DATA.reels.length, pct = k => (100 * t[k] / n) + "%";
+  document.getElementById("bar").innerHTML =
+    `<span style="width:${pct("approve")};background:var(--ok)"></span><span style="width:${pct("changes")};background:var(--warn)"></span><span style="width:${pct("reject")};background:var(--bad)"></span>`;
+  document.getElementById("counts").innerHTML =
+    `<span><b>${n - t.none}</b> of ${n} reviewed</span><span><i class="dot ok"></i>${t.approve} approved</span><span><i class="dot warn"></i>${t.changes} changes</span><span><i class="dot bad"></i>${t.reject} rejected</span><span><i class="dot up"></i>${t.upload} to upload</span>`;
+  const f = [["all", "All " + n], ["none", "To review " + t.none], ["approve", "Approved " + t.approve], ["changes", "Needs changes " + t.changes], ["reject", "Rejected " + t.reject]];
+  document.getElementById("filters").innerHTML = f.map(([k, l]) => `<button class="chip ${filter === k ? "on" : ""}" data-f="${k}">${l}</button>`).join("");
+  document.querySelectorAll("[data-f]").forEach(b => b.onclick = () => { filter = b.dataset.f; applyFilter(); refreshTop(); });
+}
+function applyFilter() {
+  let shown = 0;
+  for (const r of DATA.reels) {
+    const el = document.getElementById("reel-" + r.id), v = state[r.id].verdict || "none";
+    const on = filter === "all" || filter === v; el.style.display = on ? "" : "none"; if (on) shown++;
+  }
+  let e = document.getElementById("empty");
+  if (!shown) { if (!e) { e = document.createElement("div"); e.id = "empty"; e.className = "empty"; list.appendChild(e); } e.textContent = "Nothing here yet."; }
+  else if (e) e.remove();
+}
+
+/* ---------- export ---------- */
+function exportText() {
+  const t = tally(), L = [];
+  L.push(`REEL REVIEW: ${DATA.title} (videos/${DATA.slug})`);
+  L.push(`${t.approve} approved, ${t.changes} need changes, ${t.reject} rejected, ${t.none} not reviewed`);
+  const up = DATA.reels.filter(r => state[r.id].upload === "yes" && state[r.id].verdict !== "reject");
+  L.push(`OK to upload: ${up.length ? up.map(r => "#" + r.n + " (" + r.id + ")").join(", ") : "none yet"}`);
+  L.push("");
+  for (const r of DATA.reels) {
+    const s = state[r.id];
+    const v = s.verdict ? VERDICTS[s.verdict].out : "NOT REVIEWED";
+    const u = s.verdict === "reject" ? "" : s.upload === "yes" ? ", upload: YES" : s.upload === "no" ? ", upload: not yet" : "";
+    L.push(`#${r.n} ${r.id} "${r.headline}": ${v}${u}`);
+    if ((s.headline || "").trim()) L.push(`   New headline: ${s.headline.trim()}`);
+    const note = (s.note || "").trim();
+    if (note) note.split("\n").filter(x => x.trim()).forEach(x => L.push("   - " + x.trim()));
+    L.push("");
+  }
+  return L.join("\n").trim() + "\n";
+}
+async function copy(text) {
+  try { await navigator.clipboard.writeText(text); return true; } catch (e) {}
+  const ta = document.getElementById("exportText"); ta.focus(); ta.select();
+  try { return document.execCommand("copy"); } catch (e) { return false; }
+}
+function toast(msg) { const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove("show"), 1800); }
+const modal = document.getElementById("modal");
+document.getElementById("exportBtn").onclick = async () => {
+  const text = exportText(); document.getElementById("exportText").value = text; modal.classList.add("open");
+  toast(await copy(text) ? "Feedback copied. Paste it into Claude." : "Select the text and copy it");
+};
+document.getElementById("copyAgain").onclick = async () => toast(await copy(document.getElementById("exportText").value) ? "Copied" : "Select the text and copy it");
+document.getElementById("closeModal").onclick = () => modal.classList.remove("open");
+modal.onclick = e => { if (e.target === modal) modal.classList.remove("open"); };
+document.addEventListener("keydown", e => { if (e.key === "Escape") modal.classList.remove("open"); });
+document.getElementById("resetBtn").onclick = () => {
+  if (!confirm("Clear every verdict and note on this page?")) return;
+  state = {}; for (const r of DATA.reels) state[r.id] = { ver: r.ver }; save(); location.reload();
+};
+
+/* ---------- boot ---------- */
+document.title = "Review: " + DATA.title;
+for (const r of DATA.reels) list.appendChild(card(r));
+refreshTop(); applyFilter();
+</script>
+</body>
+</html>

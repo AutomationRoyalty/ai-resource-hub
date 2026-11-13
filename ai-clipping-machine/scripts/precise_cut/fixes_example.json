@@ -1,0 +1,40 @@
+{
+ "_doc": "<project>/fixes.json - SOURCE-second windows. drop = words removed (a retake whisper merged into one phrase: found by qa_words LONG words + probe.py); realign = words in the window replaced by this text, force-aligned to that window's audio only (the kept take); keep = window kept whole by cut_plan_lf (a scripted pause or breath, no pause trimming inside); spell = extra [regex, replacement] spellings for this video (build_words.py already fixes common ones like SaaS, $2,000, ...).",
+ "drop": [
+  [
+   129.6,
+   132.5,
+   "'The reason this works isn't the tool, it's...' take 1 (merged into a 2.9 s 'isn't')"
+  ],
+  [
+   938.95,
+   941.17,
+   "'If you've never used these tools,' take 1 (merged into a stretched '2.0', found by qa_output)"
+  ]
+ ],
+ "realign": [
+  [
+   132.5,
+   135.7,
+   "The reason this works isn't the tool, it's the way you use it."
+  ],
+  [
+   937.45,
+   938.95,
+   "in version 2.0."
+  ]
+ ],
+ "keep": [
+  [
+   412.3,
+   414.1,
+   "'Okay *breath* let's keep going' - scripted pause"
+  ]
+ ],
+ "spell": [
+  [
+   "^Zapeer$",
+   "Zapier"
+  ]
+ ]
+}

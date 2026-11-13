@@ -1,0 +1,30 @@
+{
+ "_doc": "<project>/retakes.json - word-index ranges (inclusive, from show_words.py) DROPPED from work/words_raw.json before the tight cut: earlier takes, false starts, crew talk, breaks, interruptions, whisper hallucinations on noise blips (vocab words repeated, 'Thank you.'). Always keep the LAST take. Third item = why (for you and the next editor).",
+ "retakes": [
+  [
+   111,
+   139,
+   "'In this video I'll show you the whole setup step by step.' take 1"
+  ],
+  [
+   218,
+   225,
+   "'So let's get right into it.' take 1"
+  ],
+  [
+   311,
+   312,
+   "'Thank you.' on a noise"
+  ],
+  [
+   1127,
+   1159,
+   "whisper hallucination on a noise blip (one word repeated 30 times)"
+  ],
+  [
+   2253,
+   2307,
+   "noise + a short break ('give me one second') + whisper hallucinations"
+  ]
+ ]
+}

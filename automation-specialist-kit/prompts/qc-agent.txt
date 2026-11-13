@@ -1,0 +1,1 @@
+I need you to launch a background AI quality control agent that checks if servers are up, if the automations are working properly, and if everything is going right. Do this check once every day. In case something happens, send me a notification through the Claude platform, pinging me and telling me "Hey, this is the problem," and giving me a solution, or try fixing it yourself.

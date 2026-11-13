@@ -1,0 +1,13 @@
+{
+  "_readme": "Caption spelling fixes, applied to every reel's captions. 'fix' = single-word replacements; 'merge' = [wordA, wordB, replacement] joins two words. Add your brand and product names here when speech-to-text gets them wrong.",
+  "fix": {
+    "Instagramm": "Instagram"
+  },
+  "merge": [
+    [
+      "many",
+      "chat",
+      "ManyChat"
+    ]
+  ]
+}

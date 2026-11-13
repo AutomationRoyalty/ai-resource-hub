@@ -1,0 +1,9 @@
+We need to build a website that showcases the importance of knowing AI. What I do is teach CEOs and business owners how to fully utilize AI tools so that they don't need to hire automation specialists that cost a lot and take a lot of time to build automations. I also audit their entire processes to see what old tech stacks they can replace with new ones and save thousands of dollars a month in subscriptions and in inefficiencies because of the old platforms and their infrastructures.
+
+What we need to build is a basic landing page that shows the importance of what I do and, at the same time, collects the user details. It collects their first name and their email, with the promise of sharing with them free resources that would help them set up their own systems and automations using AI.
+
+It should be pretty simple, black and white, with modern fonts that are good looking. After they fill in their details, I want an n8n automation to send these details into a Notion table that stores when the leads opted in and their entire information. On Notion as well, I want a dashboard that shows me the daily, weekly and monthly data on how many opt-ins we have, with graphs if possible.
+
+After the visitors input their details, redirect them to a page that contains basic details about my YouTube channel, with multiple videos that can be of great use to them. Here is my channel: <YOUR CHANNEL LINK>
+
+Host the websites on Vercel.
